@@ -1,0 +1,22 @@
+{
+  "name": "P2P Transfer - Direct File Sharing",
+  "short_name": "P2P Transfer",
+  "description": "Direct peer-to-peer file and message transfer without servers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#4F46E5",
+  "theme_color": "#4F46E5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%234F46E5'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🔗</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%234F46E5'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🔗</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

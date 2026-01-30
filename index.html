@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4F46E5" />
+    <title>P2P Transfer</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/jpg" href="SE1.jpg" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>8==D -> 0 P2P Transfer</h1>
+      <div id="statusBadge" class="status-badge waiting">Not Connected</div>
+
+      <div class="notice">
+        <strong>How it works:</strong> One device creates a connection, the
+        other joins using the code. Files transfer directly between devices!
+      </div>
+
+      <div class="connection-section" id="connectionSection">
+        <h3 style="margin-bottom: 15px">Choose Your Role</h3>
+
+        <div class="role-selector">
+          <div class="role-btn" id="createBtn" onclick="selectRole('create')">
+            <div class="role-icon">O</div>
+            <div class="role-title">Create Connection</div>
+            <div class="role-desc">Start first & share the code</div>
+          </div>
+          <div class="role-btn" id="joinBtn" onclick="selectRole('join')">
+            <div class="role-icon">8==D</div>
+            <div class="role-title">Join Connection</div>
+            <div class="role-desc">Enter the code to connect</div>
+          </div>
+        </div>
+
+        <div class="keyword-section" id="keywordSection" style="display: none">
+          <label
+            style="
+              font-weight: 600;
+              color: #374151;
+              margin-bottom: 10px;
+              display: block;
+            "
+          >
+            Enter Connection Keyword
+          </label>
+          <p style="font-size: 0.85em; color: #6b7280; margin-bottom: 10px">
+            Choose a unique phrase that both devices will use (e.g.,
+            "transfer-2024-abc")
+          </p>
+          <div class="keyword-input-group">
+            <input
+              type="text"
+              id="keywordInput"
+              placeholder="e.g., my-secret-transfer-code"
+            />
+            <button id="connectBtn" onclick="initiateConnection()">
+              Connect
+            </button>
+          </div>
+        </div>
+
+        <div class="connection-code" id="connectionCode" style="display: none">
+          <div class="code-label">Share this code with the other device:</div>
+          <div class="code-display" id="codeDisplay"></div>
+          <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+        </div>
+      </div>
+
+      <div class="chat-container" id="chatContainer">
+        <div class="peer-info">
+          <div class="peer-avatar">👤</div>
+          <div>
+            <div style="font-weight: 600; color: #1f2937">
+              Connected to Peer
+            </div>
+            <div style="font-size: 0.85em; color: #6b7280">Online</div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 15px">Messages</h3>
+        <div class="messages" id="messageList"></div>
+        <div class="message-input-group">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Type a message..."
+          />
+          <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="upload-section">
+          <h3>Send Files</h3>
+          <div
+            class="upload-area"
+            id="uploadArea"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            <div class="file-icon">📎</div>
+            <div><strong>Click or drag files here</strong></div>
+            <div style="color: #6b7280; margin-top: 5px; font-size: 0.9em">
+              Files transfer directly to the peer
+            </div>
+          </div>
+          <input type="file" id="fileInput" multiple style="display: none" />
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
