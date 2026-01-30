@@ -8,6 +8,11 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" type="image/jpg" href="SE1.jpg" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
   </head>
   <body>
     <div class="container">
@@ -35,37 +40,43 @@
           </div>
         </div>
 
-        <div class="keyword-section" id="keywordSection" style="display: none">
-          <label
-            style="
-              font-weight: 600;
-              color: #374151;
-              margin-bottom: 10px;
-              display: block;
-            "
-          >
-            Enter Connection Keyword
-          </label>
-          <p style="font-size: 0.85em; color: #6b7280; margin-bottom: 10px">
-            Choose a unique phrase that both devices will use (e.g.,
-            "transfer-2024-abc")
-          </p>
-          <div class="keyword-input-group">
-            <input
-              type="text"
-              id="keywordInput"
-              placeholder="e.g., my-secret-transfer-code"
-            />
-            <button id="connectBtn" onclick="initiateConnection()">
-              Connect
-            </button>
-          </div>
+        <div class="input-group">
+          <input
+            type="text"
+            id="keywordInput"
+            placeholder="Enter a unique keyword"
+          />
+
+          <button id="connectBtn" onclick="initiateConnection()">
+            Connect
+          </button>
         </div>
 
-        <div class="connection-code" id="connectionCode" style="display: none">
-          <div class="code-label">Share this code with the other device:</div>
-          <div class="code-display" id="codeDisplay"></div>
-          <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+        <div
+          id="qrCodeContainer"
+          style="display: none; margin-top: 20px; text-align: center"
+        >
+          <h3>Scan this to Join:</h3>
+          <div
+            id="qrcode"
+            style="display: inline-block; padding: 10px; background: white"
+          ></div>
+        </div>
+
+        <div id="scannerContainer" style="display: none; margin-top: 20px">
+          <button
+            onclick="startQRScanner()"
+            style="background: #ffbd00; color: black"
+          >
+            Scan QR Code
+          </button>
+          <div id="reader" width="600px"></div>
+        </div>
+
+        <div class="code-display" id="connectionCode" style="display: none">
+          <h3>Connection Code:</h3>
+          <p id="codeDisplay"></p>
+          <button class="copy-btn" onclick="copyCode()">Copy Code</button>
         </div>
       </div>
 

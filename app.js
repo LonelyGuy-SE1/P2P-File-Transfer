@@ -86,7 +86,13 @@ function selectRole(role) {
     document.getElementById("joinBtn").classList.add("active");
   }
 
-  document.getElementById("keywordSection").style.display = "block";
+  if (role === "join") {
+    document.getElementById("scannerContainer").style.display = "block";
+    document.getElementById("qrCodeContainer").style.display = "none";
+  } else {
+    document.getElementById("scannerContainer").style.display = "none";
+  }
+
   document.getElementById("keywordInput").focus();
 }
 
@@ -139,6 +145,8 @@ async function createConnection() {
 
     document.getElementById("codeDisplay").textContent = connectionCode;
     document.getElementById("connectionCode").style.display = "block";
+
+    generateQRCode(connectionCode);
 
     addSystemMessage("Waiting for peer to join...");
   } catch (error) {
@@ -271,11 +279,30 @@ function waitForICEGathering() {
     if (peerConnection.iceGatheringState === "complete") {
       resolve();
     } else {
-      peerConnection.addEventListener("icegatheringstatechange", () => {
+      const checkState = () => {
         if (peerConnection.iceGatheringState === "complete") {
+          peerConnection.removeEventListener(
+            "icegatheringstatechange",
+            checkState,
+          );
           resolve();
         }
-      });
+      };
+
+      peerConnection.addEventListener("icegatheringstatechange", checkState);
+
+      setTimeout(() => {
+        if (peerConnection.iceGatheringState !== "complete") {
+          console.warn(
+            "ICE gathering timed out, proceeding with collected candidates",
+          );
+        }
+        peerConnection.removeEventListener(
+          "icegatheringstatechange",
+          checkState,
+        );
+        resolve();
+      }, 2000);
     }
   });
 }
@@ -587,6 +614,119 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
+}
+
+/* ================= QR CODE HELPERS ================= */
+
+// 1. Generate QR Code
+function generateQRCode(text) {
+  const container = document.getElementById("qrCodeContainer");
+  const qrDiv = document.getElementById("qrcode");
+
+  // Clear previous QR code if any
+  qrDiv.innerHTML = "";
+  container.style.display = "block";
+
+  // Create new QR Code
+  // We use a lower error correction level (L) to keep the code less dense
+  new QRCode(qrDiv, {
+    text: text,
+    width: 256,
+    height: 256,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.L,
+  });
+}
+
+// 2. Scan QR Code
+function startQRScanner() {
+  document.getElementById("scannerContainer").style.display = "block";
+
+  const html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    /* verbose= */ false,
+  );
+
+  html5QrcodeScanner.render(
+    (decodedText, decodedResult) => {
+      // SUCCESS: Code scanned!
+      console.log(`Code scanned = ${decodedText}`);
+
+      // Stop scanning
+      html5QrcodeScanner.clear();
+      document.getElementById("scannerContainer").style.display = "none";
+
+      // Put the scanned code into your logic
+      handleScannedCode(decodedText);
+    },
+    (errorMessage) => {
+      // parse error, ignore it.
+    },
+  );
+}
+
+// 3. Handle the Scanned Data
+function handleScannedCode(code) {
+  // If we are waiting for an Answer (Host Side)
+  if (selectedRole === "create") {
+    // In your specific flow, processJoinerAnswer(code) directly:
+    processJoinerAnswer(code);
+  }
+  // If we are joining (Joiner Side)
+  else {
+    // We received the Offer, now process it
+    processCreatorOffer(code);
+  }
+}
+
+// Process the scanned offer for joiner
+async function processCreatorOffer(code) {
+  try {
+    updateStatus("Joining connection...", "waiting");
+
+    const connectionData = JSON.parse(atob(code));
+
+    if (connectionData.keyword !== connectionKeyword) {
+      alert(
+        "Keyword mismatch! Make sure you entered the same keyword as the creator.",
+      );
+      document.getElementById("connectBtn").disabled = false;
+      return;
+    }
+
+    peerConnection = new RTCPeerConnection(rtcConfig);
+    setupPeerConnection();
+
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(connectionData.sdp),
+    );
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    await waitForICEGathering();
+
+    const answerCode = btoa(
+      JSON.stringify({ sdp: peerConnection.localDescription }),
+    );
+
+    alert("Share this answer code with the creator:\n\n" + answerCode);
+
+    setTimeout(() => {
+      const creatorAnswer = prompt(
+        "Once the creator sees your answer code above, they will give you their final connection code. Enter it here:",
+      );
+      if (creatorAnswer) {
+        processCreatorAnswer(creatorAnswer);
+      }
+    }, 1000);
+  } catch (error) {
+    console.error("Error processing offer:", error);
+    updateStatus("Connection failed", "error");
+    alert("Invalid connection code");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);
