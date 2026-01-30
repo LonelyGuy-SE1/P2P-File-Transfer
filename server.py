@@ -195,7 +195,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 socketserver.TCPServer.allow_reuse_address = True
 
 with ThreadedHTTPServer(("", PORT), Handler) as httpd:
-    print(f"Serving securely on port {PORT}")
+    print(f"Serving securely at: http://localhost:{PORT}")
+    print("Press Ctrl+C to stop the server")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
