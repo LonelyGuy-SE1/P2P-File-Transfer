@@ -1,56 +1,34 @@
-# This is a primitive file transfer purely built to suit my personal requirements/needs. It is not recommended to use this unless you know what is happening.
+# Secure P2P File Transfer
 
-# 🔗 P2P Transfer - Direct File & Message Transfer
+A lightweight, secure, ephemeral file transfer system using Python and Vanilla JS. (Supports chat too.)
 
-**True peer-to-peer file transfer with NO server hosting required!**
+## Technical Details
 
-This app creates direct connections between devices using WebRTC, allowing files and messages to transfer directly without going through any server.
+- **Backend**: Python `http.server` (ThreadedTCPServer)
+- **Frontend**: Vanilla JS, CSS
+- **Security**: 4-digit PIN authentication (Bearer Token / Query Param)
+- **Storage**: Ephemeral `temp_transfers` directory (wiped on exit)
+- **Network**: Local LAN only (binds to `0.0.0.0`)
 
-## Quick Start
+## Requirements
 
-### Step 1: Open the App
+- Python 3.x
+- Windows (for `.bat` launcher, script works cross-platform)
 
-Simply open `index.html` in a web browser on both devices.
+## Setup & Run
 
-**For local testing:**
+1.  **Launch**: Double-click `run_transfer.bat` (or run `python server.py`).
+2.  **PIN**: Note the 4-digit PIN displayed in the console.
 
-```bash
-# Using Python 3
-python3 -m http.server 8080
+## Usage
 
-# or
+1.  **Connect**:
+    - Host: Open `http://localhost:8000`.
+    - Peer: Scan QR code or enter IP URL.
+2.  **Authenticate**: Enter the PIN from the console on both devices.
+3.  **Transfer**: Upload files. They appear instantly on connected devices.
+4.  **Chat**: Send messages/links in real-time.
 
-npx http-server -p 8080
-```
+## Cleanup
 
-Then visit `http://localhost:8080` in your browser.
-
-### Step 2: Choose Roles
-
-**On Device 1 (Creator):**
-
-1. Click "Create Connection"
-2. Enter a unique keyword (e.g., "transfer-abc-123")
-3. Click "Connect"
-4. You'll get a connection code - copy it
-
-**On Device 2 (Joiner):**
-
-1. Click "Join Connection"
-2. Enter the SAME keyword
-3. Click "Connect"
-4. Paste the connection code from Device 1
-5. You'll get an answer code - share it with Device 1
-
-**Back on Device 1:**
-
-1. Enter the answer code from Device 2
-2. Connection established!
-
-### Step 3: Transfer!
-
-Once connected, you can:
-
-- Send messages instantly
-- Drag & drop files to transfer
-- Download received files.
+Closing the console/server execution automatically deletes all uploaded files and chat history.

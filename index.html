@@ -8,119 +8,234 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" type="image/jpg" href="SE1.jpg" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script
-      src="https://unpkg.com/html5-qrcode"
-      type="text/javascript"
-    ></script>
+    <script src="qrcode.min.js"></script>
   </head>
   <body>
-    <div class="container">
-      <h1>8==D -> 0 P2P Transfer</h1>
-      <div id="statusBadge" class="status-badge waiting">Not Connected</div>
+    
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2 style="color: var(--primary-neon); margin-bottom: 20px;">SECURITY CHECK</h2>
+            <p style="margin-bottom: 10px; color: #888;">Enter 4-digit PIN</p>
+            <input type="number" id="pinInput" class="login-input" placeholder="0000" />
+            <br>
+            <button onclick="login()" class="login-btn">ACCESS</button>
+            <p style="margin-top: 20px; color: #555; font-size: 0.8em;">Check server console for PIN</p>
+        </div>
+    </div>
+
+    <div class="container app-content" id="appContent">
+      <h1>File Transfer</h1>
+      <div id="statusBadge" class="status-badge connected">Ready</div>
 
       <div class="notice">
-        <strong>How it works:</strong> One device creates a connection, the
-        other joins using the code. Files transfer directly between devices!
+        <strong>How it works:</strong> Scan the QR code to connect. Upload files to share. Chat to share links.
       </div>
 
-      <div class="connection-section" id="connectionSection">
-        <h3 style="margin-bottom: 15px">Choose Your Role</h3>
-
-        <div class="role-selector">
-          <div class="role-btn" id="createBtn" onclick="selectRole('create')">
-            <div class="role-icon">O</div>
-            <div class="role-title">Create Connection</div>
-            <div class="role-desc">Start first & share the code</div>
-          </div>
-          <div class="role-btn" id="joinBtn" onclick="selectRole('join')">
-            <div class="role-icon">8==D</div>
-            <div class="role-title">Join Connection</div>
-            <div class="role-desc">Enter the code to connect</div>
-          </div>
+      <div class="connection-section">
+        <h3>Connection Info</h3>
+        <div id="qrCodeContainer" style="text-align: center; margin-bottom: 20px;">
+          <div id="qrcode" style="display: inline-block; padding: 10px; background: white"></div>
         </div>
-
-        <div class="input-group">
-          <input
-            type="text"
-            id="keywordInput"
-            placeholder="Enter a unique keyword"
-          />
-
-          <button id="connectBtn" onclick="initiateConnection()">
-            Connect
-          </button>
-        </div>
-
-        <div
-          id="qrCodeContainer"
-          style="display: none; margin-top: 20px; text-align: center"
-        >
-          <h3>Scan this to Join:</h3>
-          <div
-            id="qrcode"
-            style="display: inline-block; padding: 10px; background: white"
-          ></div>
-        </div>
-
-        <div id="scannerContainer" style="display: none; margin-top: 20px">
-          <button
-            onclick="startQRScanner()"
-            style="background: #ffbd00; color: black"
-          >
-            Scan QR Code
-          </button>
-          <div id="reader" width="600px"></div>
-        </div>
-
-        <div class="code-display" id="connectionCode" style="display: none">
-          <h3>Connection Code:</h3>
-          <p id="codeDisplay"></p>
-          <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+        <div style="text-align: center; color: var(--primary-neon);">
+            <a id="serverLink" href="#" target="_blank" style="color: inherit; text-decoration: none; font-size: 1.2em;">Loading...</a>
         </div>
       </div>
 
-      <div class="chat-container" id="chatContainer">
-        <div class="peer-info">
-          <div class="peer-avatar">👤</div>
-          <div>
-            <div style="font-weight: 600; color: #1f2937">
-              Connected to Peer
-            </div>
-            <div style="font-size: 0.85em; color: #6b7280">Online</div>
-          </div>
+      <div class="upload-section">
+        <h3>Upload Files</h3>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <div class="file-icon">📎</div>
+          <div><strong>Click to Upload</strong></div>
         </div>
+        <input type="file" id="fileInput" name="file" style="display: none" onchange="uploadFile()" />
+      </div>
 
-        <h3 style="margin-bottom: 15px">Messages</h3>
+      <div id="fileSection" style="display: none;">
+        <h3 style="margin-top: 30px;">Available Files</h3>
+        <div class="file-list" id="fileList"></div>
+      </div>
+
+      <div class="chat-container">
+        <h3>Chat</h3>
         <div class="messages" id="messageList"></div>
         <div class="message-input-group">
-          <input
-            type="text"
-            id="messageInput"
-            placeholder="Type a message..."
-          />
-          <button onclick="sendMessage()">Send</button>
-        </div>
-
-        <div class="upload-section">
-          <h3>Send Files</h3>
-          <div
-            class="upload-area"
-            id="uploadArea"
-            onclick="document.getElementById('fileInput').click()"
-          >
-            <div class="file-icon">📎</div>
-            <div><strong>Click or drag files here</strong></div>
-            <div style="color: #6b7280; margin-top: 5px; font-size: 0.9em">
-              Files transfer directly to the peer
-            </div>
-          </div>
-          <input type="file" id="fileInput" multiple style="display: none" />
-          <div class="file-list" id="fileList"></div>
+            <input type="text" id="messageInput" placeholder="Type a message or link..." onkeypress="handleKeyPress(event)" />
+            <button onclick="sendMessage()">Send</button>
         </div>
       </div>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+      let lastData = { files: [], messages: [] };
+      let PIN = null;
+
+      async function login() {
+          const pin = document.getElementById('pinInput').value;
+          try {
+              const res = await fetch('/api/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ pin: pin })
+              });
+              if (res.ok) {
+                  PIN = pin;
+                  document.getElementById('loginOverlay').style.display = 'none';
+                  document.getElementById('appContent').style.filter = 'none';
+                  document.getElementById('appContent').style.pointerEvents = 'all';
+                  sessionStorage.setItem('ftp_pin', pin);
+                  init();
+              } else {
+                  alert('Invalid PIN');
+              }
+          } catch (e) {
+              alert('Connection Error');
+          }
+      }
+
+      function checkStoredAuth() {
+          const savedPin = sessionStorage.getItem('ftp_pin');
+          if (savedPin) {
+              document.getElementById('pinInput').value = savedPin;
+              login();
+          }
+      }
+
+      function authHeader() {
+          return { 'Authorization': `Bearer ${PIN}` };
+      }
+
+      async function init() {
+        try {
+            const ipRes = await fetch('/api/ip', { headers: authHeader() });
+            const ipData = await ipRes.json();
+            const url = `http://${ipData.ip}:8000`;
+            
+            document.getElementById('serverLink').href = url;
+            document.getElementById('serverLink').innerText = url;
+
+            new QRCode(document.getElementById("qrcode"), {
+                text: url,
+                width: 128,
+                height: 128
+            });
+
+            refreshData();
+            setInterval(refreshData, 2000);
+
+        } catch (e) {
+            console.error(e);
+        }
+      }
+
+      async function refreshData() {
+        if (!PIN) return;
+        try {
+            const res = await fetch('/api/data', { headers: authHeader() });
+            if (res.status === 401) {
+                location.reload();
+                return;
+            }
+            const data = await res.json();
+            
+            if (JSON.stringify(data.files) !== JSON.stringify(lastData.files)) {
+                updateFiles(data.files);
+            }
+
+            if (JSON.stringify(data.messages) !== JSON.stringify(lastData.messages)) {
+                updateMessages(data.messages);
+            }
+            
+            lastData = data;
+        } catch (e) {
+            console.error(e);
+        }
+      }
+
+      function updateFiles(files) {
+        const list = document.getElementById('fileList');
+        const section = document.getElementById('fileSection');
+
+        if (files.length === 0) {
+            section.style.display = 'none';
+        } else {
+            section.style.display = 'block';
+            list.innerHTML = '';
+            files.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                // Add ?token=PIN to download link
+                const downloadUrl = `${f}?token=${PIN}`;
+                
+                item.innerHTML = `
+                    <div class="file-name">${f}</div>
+                    <a href="${downloadUrl}" download="${f}" class="download-btn" style="text-decoration:none; border:1px solid; padding:5px;">Download</a>
+                `;
+                list.appendChild(item);
+            });
+        }
+      }
+
+      function updateMessages(messages) {
+        const list = document.getElementById('messageList');
+        list.innerHTML = '';
+        messages.forEach(msg => {
+            const item = document.createElement('div');
+            item.className = 'message-item received';
+            const linkedMsg = msg.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--primary-neon)">$1</a>');
+            item.innerHTML = `<div class="message-text">${linkedMsg}</div>`;
+            list.appendChild(item);
+        });
+        list.scrollTop = list.scrollHeight;
+      }
+
+      async function uploadFile() {
+        const input = document.getElementById('fileInput');
+        if (input.files.length === 0) return;
+
+        const formData = new FormData();
+        formData.append('file', input.files[0]);
+
+        try {
+            await fetch('/api/upload', {
+                method: 'POST',
+                headers: authHeader(),
+                body: formData
+            });
+            input.value = '';
+            refreshData();
+        } catch (e) {
+            alert('Upload failed');
+        }
+      }
+
+      async function sendMessage() {
+          const input = document.getElementById('messageInput');
+          const text = input.value;
+          if (!text.trim()) return;
+
+          try {
+              await fetch('/api/chat', {
+                  method: 'POST',
+                  headers: { 
+                      'Content-Type': 'application/json',
+                      ...authHeader()
+                  },
+                  body: JSON.stringify({ text: text })
+              });
+              input.value = '';
+              refreshData();
+          } catch(e) {
+              console.error(e);
+          }
+      }
+
+      function handleKeyPress(e) {
+          if (e.key === 'Enter') {
+              sendMessage();
+          }
+      }
+
+      checkStoredAuth();
+    </script>
   </body>
 </html>
