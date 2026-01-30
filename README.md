@@ -1,6 +1,6 @@
 # Secure P2P File Transfer
 
-A lightweight, secure, ephemeral file transfer system using Python and Vanilla JS. (Supports chat too.)
+A lightweight, secure, ephemeral file transfer system using Python and Vanilla JS. (Supports chat too. The Chat does not have a user system, and this is intentional)
 
 ## Technical Details
 
